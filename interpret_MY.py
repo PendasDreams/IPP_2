@@ -67,12 +67,13 @@ class ProgramArgs:
     # this class takes care of program arguments, their parsing and checks correctness
 
     def __init__(self):
-        self.inputToBeExecuted = None
-        self._parser = None
-        self._arguments = None
-        self.inputToBeRead = None
         self.sourceBool = False
         self.inputBool = False
+        self.inputToBeExecuted = None
+        self._arguments = None
+        self._parser = None
+        self.inputToBeRead = None
+
     
     def executeProgramParams(self):
         self.parseProgramsArgumets()
@@ -81,52 +82,53 @@ class ProgramArgs:
     
     def parseProgramsArgumets(self):
     # parses arguments with argParse
-        if '--help' in sys.argv and len(sys.argv) > 2: exit(10)
-        if '-h' in sys.argv and len(sys.argv) > 2: exit(10)
+        if '--help' in sys.argv and len(sys.argv) > 2: 
+            exit(10)
+        if '-h' in sys.argv and len(sys.argv) > 2: 
+            exit(10)
         self._parser = argparse.ArgumentParser(description="IPP/2023 Interpret")
         self._parser.add_argument("--source",  action="store", dest="source")
         self._parser.add_argument("--input", action="store", dest="input")
         self._arguments = self._parser.parse_args()
 
-    
+
     def checkProgramsArgumentsPath(self):
     # this method is checking the existence of file(s)
+        if self.sourceBool and not os.path.exists(self.sourceBool):
+            exit(11)
+        if self.inputBool and not os.path.exists(self.inputBool):
+            exit(11)
 
-        isExists = None
-        if self.sourceBool:
-            isExists = os.path.exists(self._arguments.source)
-            if not isExists:
-                exit(11)
-        if self.inputBool:
-            isExists = os.path.exists(self._arguments.input)
-            if not isExists:
-                exit(11)
-
-        
     def checkProgramArguments(self):
-    # checks if user entered correct arguments
-
-        if self._arguments.source == None and self._arguments.input == None:
-           pass #exit(10)
-        elif self._arguments.source != None and self._arguments.input == None:
+        # check if user entered correct arguments
+        if not self._arguments.source and not self._arguments.input:
+            exit(10)
+        if self._arguments.source and not self._arguments.input:
             self.inputToBeExecuted = self._arguments.source
             self.inputToBeRead = sys.stdin
             self.sourceBool = True
-        elif self._arguments.source == None and self._arguments.input != None:
+        if not self._arguments.source and self._arguments.input:
             self.inputToBeExecuted = sys.stdin
             self.inputToBeRead = open(self._arguments.input, "r")
             self.inputBool = True
-        elif self._arguments.source != None and self._arguments.input != None:
+        if self._arguments.source and self._arguments.input:
             self.inputToBeExecuted = self._arguments.source
             self.inputToBeRead = open(self._arguments.input, "r")
-            self.sourceBool, self.inputBool = True, True
+            self.sourceBool = True
+            self.inputBool = True
+    
+ 
+
+
 
 class Instruction:
     def __init__(self, opcode, num, args):
         self._opcode = opcode
         self._num = num
         self._type = str
-        self.arg1, self.arg2, self.arg3 = None, None, None
+        self.arg1 = None
+        self.arg2 = None
+        self.arg3 = None
 
         self.check_opcode()
 
@@ -144,12 +146,13 @@ class Instruction:
         if self.arg3:
             self.arg3.check()
 
-    def get_opcode(self):
-        return self._opcode
-
     def check_opcode(self):
         if self._opcode not in instructionNumOfArguments[self._num]:
             exit(32)
+
+    def get_opcode(self):
+        return self._opcode
+
 
 class Argument:
     def __init__(self, num, typ: str, value):
