@@ -122,6 +122,7 @@ class ProgramArgs:
 
 
 class Instruction:
+
     def __init__(self, opcode, num, args):
         self._opcode = opcode
         self._num = num
@@ -185,34 +186,26 @@ class Argument:
         """
 
         self.checkArgumentsType(instruction_arguments_types[insOpCode][self._num-1])
+
+
         if self._typ == 'VAR' and not insOpCode == 'DEFVAR':
-            if     self._value.startswith('TF') and not exists_temp_frame  : exit(55)
-            if     self._value.startswith('LF') and     number_of_local_frames == 0 : exit(55)
-            if not self._value in var_list: exit(54)
+            if     self._value.startswith('TF') and not exists_temp_frame: 
+                exit(55)
+            if     self._value.startswith('LF') and number_of_local_frames == 0:
+                exit(55)
+            if not self._value in var_list:
+                exit(54)
             self._varName = self._value
             if not self._num == 1:
-                self._typ   = var_list[self._value][Var.TYPE]
+                self._typ = var_list[self._value][Var.TYPE]
                 self._value = var_list[self._value][Var.VALUE]
+
         self.checkTypeConversion()
         self.replaceEscapeSequences()
-        if self._value  == None and insOpCode != 'TYPE': exit(56)
+        if self._value  == None and insOpCode != 'TYPE':
+            exit(56)
 
-    def replaceEscapeSequences(self):
-        """ This method looks for escape sequences by regex. It saves them into an array 'x'.
-        Then it converts them to integers and by chr() function replaces these escape sequences
-        by their queal representation in ASCII. If the string is empty this method is not performed.
-        """
 
-        if self._typ == 'STRING' and self._value != None:
-            x = re.findall(r"\\[0-9]{3}", self._value)
-            x = [string[1:] for string in x]
-            x = list(map(int, x))
-            for escSeq in x:
-                toReplace = '\\0' + str(escSeq)
-                self._value = self._value.replace(toReplace, chr(escSeq))
-        elif self._typ == 'STRING' and self._value == None:
-            self._value = ''
-    
     def checkTypeConversion(self):
         """ Converts string represented values into their real types """
 
@@ -230,10 +223,30 @@ class Argument:
             self._value = Val.NIL
         else :
             return
+  
+  
+    def replaceEscapeSequences(self):
+        """ This method looks for escape sequences by regex. It saves them into an array 'x'.
+        Then it converts them to integers and by chr() function replaces these escape sequences
+        by their queal representation in ASCII. If the string is empty this method is not performed.
+        """
+
+        if self._typ == 'STRING' and self._value != None:
+            x = re.findall(r'\\(\d{3})', self._value)
+            x = [string[1:] for string in x]
+            x = list(map(int, x))
+            for escSeq in x:
+                toReplace = '\\0' + str(escSeq)
+                self._value = self._value.replace(toReplace, chr(escSeq))
+        elif self._typ == 'STRING' and self._value == None:
+            self._value = ''
+    
+
 
 class Program:
     
     sorted_ins = []
+
     def __init__(self, treeToBeParsed):
         if os.stat(treeToBeParsed).st_size == 0:
             exit(0)
@@ -260,7 +273,7 @@ class Program:
                 assert ins.attrib['order'] 
                 numOfArgs = 0 
                 for arg in ins:
-                    assert re.match(r"^arg[1-3]$", arg.tag)
+                    assert re.match(r"^arg[1|2|3]$", arg.tag)
                     assert arg.attrib['type']
                     numOfArgs = numOfArgs + 1
             assert self._root.tag == 'program'
@@ -279,7 +292,8 @@ class Program:
             for ins in sorted_ins:
                 num = int(ins.get('order'))
                 duplicatedOrderds.append(num)
-                if num < 1: exit(32) # detects non-positive order numbers
+                if num < 1:
+                    exit(32) # detects non-positive order numbers
             if not len(duplicatedOrderds) == len(set(duplicatedOrderds)): exit(32) # detects duplication of order numbers
         except:
             exit(32)
@@ -288,12 +302,14 @@ class Program:
         """ Looks for labels and checks their uniqueness. """
 
         cycle = 0
+
         for ins in self._root:
             if ins.get('opcode') == 'LABEL':
                 if ins[0].text in label_list:
                     exit(52)
                 label_list[ins[0].text] = cycle
-            cycle = cycle + 1
+            cycle += 1
+
 
 #### PROGRAM STARTS EXECUTING HERE ####
 if __name__ == "__main__":
